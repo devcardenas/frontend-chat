@@ -33,15 +33,8 @@ export default {
         ...mapState(['messages', 'username', 'usersConnected']),
     },
     methods: {
-        ...mapActions(['sendMessage', 'fetchMessages', 'receiveMessage', 'fetchUsersConnected']),
+        ...mapActions(['sendMessage']),
     },
-    created() {
-        // Cargar mensajes antiguos al entrar en la sala
-        this.fetchMessages();
-
-        // Configurar la recepción de mensajes en tiempo real
-        this.receiveMessage();
-    }
 };
 </script>
 

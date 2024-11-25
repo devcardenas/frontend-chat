@@ -19,7 +19,8 @@ export default {
     methods: {
         setUsername() {
             if (this.newUsername.trim()) {
-                this.$store.commit('setUsername', this.newUsername); // Actualizar el nombre de usuario
+                //this.$store.commit('setUsername', this.newUsername); // Actualizar el nombre de usuario
+                this.$store.dispatch('setUsernameAndInitializeSocket', this.newUsername);
                 this.newUsername = ''; // Limpiar el campo de texto
             } else {
                 alert('Por favor ingresa un nombre de usuario.');

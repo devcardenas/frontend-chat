@@ -1,20 +1,18 @@
 import { createStore } from 'vuex';
 import io from 'socket.io-client';
 
-// Conexión con Socket.IO
-const socket = io('http://localhost:3000'); // Cambia por tu URL backend si es necesario
-
 export default createStore({
   state: {
-    username: /*localStorage.getItem('username') ||*/ '', // Nombre de usuario
-    messages: [], // Lista de mensajes,
+    username: '', // Nombre de usuario
+    messages: [], // Lista de mensajes
+    socket: null, // Instancia de Socket.IO
   },
   mutations: {
     setUsername(state, username) {
       state.username = username;
-
-      // Guardamos el nombre de usuario en localStorage para que cuando se recarge la página no se pierda
-      //localStorage.setItem('username', username);
+    },
+    setSocket(state, socketInstance) {
+      state.socket = socketInstance;
     },
     addMessage(state, message) {
       state.messages.push(message);
@@ -24,12 +22,28 @@ export default createStore({
     },
   },
   actions: {
-    // Configurar el nombre de usuario
-    setUsername({ commit }, username) {
-      commit('setUsername', username);
-    },
+    initializeSocket({ state, commit }) {
+      if (state.username && !state.socket) {
+        const socketInstance = io('http://localhost:3000', {
+          query: { username: state.username }, // Envía el nombre de usuario al conectar
+        });
 
-    // Cargar mensajes antiguos desde la API
+        // Configura los eventos del socket
+        socketInstance.on('message-received', (message) => {
+          commit('addMessage', message);
+        });
+
+        // Guarda la instancia del socket
+        commit('setSocket', socketInstance);
+
+        // Carga los mensajes del chat
+        this.dispatch('fetchMessages');
+      }
+    },
+    setUsernameAndInitializeSocket({ commit, dispatch }, username) {
+      commit('setUsername', username);
+      dispatch('initializeSocket');
+    },
     async fetchMessages({ commit }) {
       try {
         const response = await fetch('http://localhost:3000/api/messages'); // URL del backend
@@ -39,21 +53,15 @@ export default createStore({
         console.error('Error al cargar mensajes:', error);
       }
     },
-    // Enviar un mensaje al servidor
     sendMessage({ state }, content) {
-      const message = {
-        username: state.username,
-        content,
-        timestamp: new Date().toISOString(),
-      };
-      socket.emit('new-message', message);
-    },
-
-    // Escuchar mensajes en tiempo real desde Socket.IO
-    receiveMessage({ commit }) {
-      socket.on('message-received', (message) => {
-        commit('addMessage', message);
-      });
+      if (state.socket) {
+        const message = {
+          username: state.username,
+          content,
+          timestamp: new Date().toISOString(),
+        };
+        state.socket.emit('new-message', message);
+      }
     },
   },
   getters: {
