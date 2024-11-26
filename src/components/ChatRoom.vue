@@ -30,7 +30,7 @@ export default {
     name: 'ChatRoom',
     components: { MessageList, MessageInput, UsernameInput },
     computed: {
-        ...mapState(['messages', 'username', 'usersConnected']),
+        ...mapState(['messages', 'username']),
     },
     methods: {
         ...mapActions(['sendMessage']),
